@@ -6,11 +6,11 @@
 #include <string.h>
 #include <strings.h>
 #include <memory>
+#include <unistd.h>
 
 #include "ioparport.h"
-#include "iofx2.h"
-#include "ioftdi.h"
-#include "ioxpc.h"
+#include "iodebug.h"
+#include "iosolas.h"
 #include "sysfscreator.h"
 #include "sysfsvoice.h"
 #include "iomatrixcreator.h"
@@ -65,50 +65,20 @@ int  getIO( std::auto_ptr<IOBase> *io, struct cable_t * cable, char const *dev,
           fprintf(stderr, "Parallel port cables are not supported on OS X.\n");
           return 1;
 #else
-	  io->reset(new IOParport());
-          io->get()->setVerbose(verbose);
-          res = io->get()->Init(cable, dev, use_freq);
+	  
+
+
 #endif
     }
-  else if(cable->cabletype == CABLE_FTDI)  
+    else if(cable->cabletype == CABLE_SOLAS)  
   {
-      io->reset(new IOFtdi(use_ftd2xx));
+      io->reset(new IOSolas());
       io->get()->setVerbose(verbose);
       res = io->get()->Init(cable, serial, use_freq);
   }
-  else if(cable->cabletype  == CABLE_FX2)
+  else if(cable->cabletype  == CABLE_DEBUG)
   { 
-      io->reset(new IOFX2());
-      io->get()->setVerbose(verbose);
-      res = io->get()->Init(cable, serial, use_freq);
-  }
-  else if(cable->cabletype == CABLE_XPC)  
-  {
-      io->reset(new IOXPC());
-      io->get()->setVerbose(verbose);
-      res = io->get()->Init(cable, serial, use_freq);
-  }
-  else if(cable->cabletype == CABLE_SYSFS_GPIO_CREATOR)  
-  {
-      io->reset(new IOSysFsMatrixCreator());
-      io->get()->setVerbose(verbose);
-      res = io->get()->Init(cable, serial, use_freq);
-  }
-  else if(cable->cabletype == CABLE_SYSFS_GPIO_VOICE)  
-  {
-      io->reset(new IOSysFsMatrixVoice());
-      io->get()->setVerbose(verbose);
-      res = io->get()->Init(cable, serial, use_freq);
-  }
-  else if(cable->cabletype == CABLE_MATRIX_CREATOR)
-  {
-      io->reset(new IOMatrixCreator());
-      io->get()->setVerbose(verbose);
-      res = io->get()->Init(cable, serial, use_freq);
-  }
-  else if(cable->cabletype == CABLE_MATRIX_VOICE)
-  {
-      io->reset(new IOMatrixVoice());
+      io->reset(new IODebug());
       io->get()->setVerbose(verbose);
       res = io->get()->Init(cable, serial, use_freq);
   }
@@ -124,11 +94,8 @@ const char *getCableName(int type)
     switch (type)
     {
     case CABLE_PP: return "pp"; break;
-    case CABLE_FTDI: return "ftdi"; break;
-    case CABLE_FX2: return "fx2"; break;
-    case CABLE_XPC: return "xpc"; break;
-    case CABLE_SYSFS_GPIO_CREATOR: return "sysfsgpio_creator"; break;
-    case CABLE_SYSFS_GPIO_VOICE: return "sysfsgpio_voice"; break;
+    case CABLE_SOLAS: return "solas"; break;
+    case CABLE_DEBUG: return "debug"; break;
     case CABLE_UNKNOWN: return "unknown"; break;
     default:
         return "Unknown";

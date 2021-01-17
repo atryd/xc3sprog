@@ -3,34 +3,15 @@ project(xc3sprog)
 set(xc3sprog_VERSION_MAJOR 0)
 set(xc3sprog_VERSION_MINOR 0)
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_program(CMAKE_RANLIB amiga-ranlib PATHS ${COMPILER_PATH})
 SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}")
-set(CMAKE_CXX_FLAGS "-g -Wall")
+set(CMAKE_CXX_FLAGS "-mcrt=nix20 -O2")
 cmake_minimum_required(VERSION 2.6)
 
-if(${WIN32})
-set(USE_STATIC_FTDI ON)
-IF( ${CMAKE_COMPILER_IS_GNUCXX} )
- # link libstdc++ and others statically
- add_definitions( -D__USE_MINGW_ANSI_STDIO )
- SET (CMAKE_EXE_LINKER_FLAGS    "-static-libstdc++ -static-libgcc")
-ENDIF( ${CMAKE_COMPILER_IS_GNUCXX} )
-endif(${WIN32})
 
-option(USE_FTD2XX "Use FTDI libFTD2XX instead of free libftdi" ON)
-
-find_package(libftdi)
-include_directories(${LIBFTDI_INCLUDE_DIR})
-
-if(USE_FTD2XX)
-  find_package(libFTD2XX)
-endif(USE_FTD2XX)
-
-if(LIBFTD2XX_FOUND)
-  include_directories(${LIBFTD2XX_INCLUDE_DIR})
-  add_definitions( -DUSE_FTD2XX )
-else(LIBFTD2XX_FOUND)
-  set(LIBFTD2XX_LIBRARIES "")
-endif(LIBFTD2XX_FOUND)
 
 if(EXISTS ${PROJECT_SOURCE_DIR}/.git) 
   set(VERSION_STRING "${xc3sprog_VERSION_MAJOR}.${xc3sprog_VERSION_MINOR}-git")
@@ -45,38 +26,18 @@ else(EXISTS ${PROJECT_SOURCE_DIR}/.git)
 endif(EXISTS ${PROJECT_SOURCE_DIR}/.git)
 
 # Create suffix to eventually install inlib64
-IF(CMAKE_SIZEOF_VOID_P EQUAL 4)
     SET(LIB_SUFFIX "")
-    SET(PACK_ARCH ".x86")
-  ELSE(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    SET(LIB_SUFFIX 64)
-    SET(PACK_ARCH .x86_64)
-endif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    SET(PACK_ARCH ".m68k")
 
 # Package information
 set(CPACK_PACKAGE_VERSION              ${VERSION_STRING})
 set(CPACK_PACKAGE_CONTACT              "Uwe Bonnes <bon@elektron.ikp.physik.tu-darmstadt.de>")
 set(CPACK_PACKAGE_DESCRIPTION          "JTAG Progarmming tools")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY  ${CPACK_PACKAGE_DESCRIPTION}
-                                       )
-# Package settings
-if(${UNIX})
-  set(CPACK_GENERATOR                    "DEB;RPM")
-  set(CPACK_CMAKE_GENERATOR              "Unix Makefiles")
-  set(CPACK_PACKAGE_NAME                 ${PROJECT_NAME})
-  set(CPACK_PACKAGE_FILE_NAME            ${PROJECT_NAME}-${VERSION_STRING}${PACK_ARCH})
-endif(${UNIX})
+)
 
-if(${WIN32})
-  set(CPACK_GENERATOR                    "NSIS")
-  set(CPACK_CMAKE_GENERATOR              "MinGW Makefiles")
-  set(CPACK_PACKAGE_NAME                 "${PROJECT_NAME}")
-  set(CPACK_PACKAGE_VENDOR               "")
-  set(CPACK_PACKAGE_INSTALL_DIRECTORY    "libftdi")
-  set(CPACK_PACKAGE_FILE_NAME            "${PROJECT_NAME}-${VERSION_STRING}-win32")
-  set(CPACK_NSIS_DISPLAY_NAME            "libftdi")
-  set(CPACK_NSIS_MODIFY_PATH             "ON")
-endif(${WIN32})
+       
+
 
 set(CPACK_RESOURCE_FILE_LICENSE        ${CMAKE_SOURCE_DIR}/LICENSE)
 
@@ -85,25 +46,8 @@ set(CPACK_SOURCE_IGNORE_FILES          "\\\\.svn" "build*")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME     ${CPACK_PACKAGE_FILE_NAME})
 
 # Subdirectories
-if(${UNIX})
-  set(CPACK_SET_DESTDIR "ON")
-endif(${UNIX})
 
-#link libusb dynamic at runtime on windows at at compile time else
-#this circumvents a problem with Debian
-set (CONDITIONAL_FILES)
-set (CONDITIONAL_LIBS)
-if("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
-   set (CONDITIONAL_FILES ${CONDITIONAL_FILES} "libusb_dyn.c")
-else("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
-   find_package(libusb)
-   include_directories(${LIBUSB_INCLUDE_DIR})
-   set(CONDITIONAL_LIBS ${CONDITIONAL_LIBS} ${LIBUSB_LIBRARIES})
-endif("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
-
-if(NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
-        set (CONDITIONAL_FILES ${CONDITIONAL_FILES} "ioparport.cpp")
-endif(NOT "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+set(CPACK_SET_DESTDIR "ON")
 
 set (LIBUSRP_INCLUDE_DIR "fallback/")
 include_directories(${LIBUSRP_INCLUDE_DIR})
@@ -130,32 +74,28 @@ ADD_CUSTOM_COMMAND(OUTPUT cables.h
 
 INCLUDE_DIRECTORIES(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
 
-add_library(xc3sproglib  STATIC sysfs.cpp sysfscreator.cpp sysfsvoice.cpp ioftdi.cpp 
-                        iofx2.cpp devicedb.cpp jtag.cpp jedecfile.cpp bitfile.cpp 
-                        iomatrixcreator.cpp iomatrixvoice.cpp iowiringpi.cpp
+add_library(xc3sproglib  STATIC sysfs.cpp sysfscreator.cpp sysfsvoice.cpp  
+                        devicedb.cpp jtag.cpp jedecfile.cpp bitfile.cpp iodebug.cpp iosolas.cpp
 			iobase.cpp  progalgxc95x.cpp utilities.cpp
-			progalgxcf.cpp progalgxcfp.cpp progalgxc3s.cpp
-			progalgavr.cpp progalgxc2c.cpp  mapfile_xc2c.cpp
-			ioxpc.cpp progalgspiflash.cpp bitrev.cpp
+		  mapfile_xc2c.cpp
+			progalgspiflash.cpp bitrev.cpp
                         cabledb.cpp pdioverjtag.cpp xmega_pdi_nvm.cpp
                         ${CONDITIONAL_FILES} devices.h cables.h)
 
-set(LIBS ${LIBS} wiringPiDev wiringPi)
+SET(CMAKE_CXX_ARCHIVE_FINISH "amiga-ranlib libxc3sproglib.a")
 
 add_executable(xc2c_warp xc2c_warp.cpp)
 target_link_libraries(xc2c_warp xc3sproglib ${CONDITIONAL_LIBS})
 
 add_executable(detectchain detectchain.cpp cables.h devices.h)
-target_link_libraries(detectchain xc3sproglib ${LIBFTDI_LIBRARIES} ${LIBFTD2XX_LIBRARIES} ${CONDITIONAL_LIBS} ${LIBS} )
+target_link_libraries(detectchain xc3sproglib ${CONDITIONAL_LIBS} ${LIBS} )
 
-add_executable(xc3sprog xc3sprog.cpp javr.cpp srecfile.cpp progalgavr.cpp 
+add_executable(xc3sprog xc3sprog.cpp srecfile.cpp
 			devices.h)
-target_link_libraries(xc3sprog xc3sproglib ${LIBFTDI_LIBRARIES}  ${LIBFTD2XX_LIBRARIES} ${CONDITIONAL_LIBS}  ${LIBS} )
+target_link_libraries(xc3sprog xc3sproglib ${CONDITIONAL_LIBS}  ${LIBS} )
 
 add_executable(readdna readdna.cpp devices.h)
-target_link_libraries(readdna xc3sproglib ${LIBFTDI_LIBRARIES}  ${LIBFTD2XX_LIBRARIES} ${CONDITIONAL_LIBS}  ${LIBS} )
-
-
+target_link_libraries(readdna xc3sproglib ${LIBFTDI_LIBRARIES}  ${CONDITIONAL_LIBS}  ${LIBS} )
 
 
 install(TARGETS xc3sprog DESTINATION bin)
@@ -168,5 +108,16 @@ install(TARGETS detectchain DESTINATION bin)
 add_subdirectory(packages)
 include(CPack)
 
+
+add_custom_target(create_zip COMMAND
+    ${CMAKE_COMMAND} -E tar "cfv" "xc3sprog.zip" --format=zip
+       "${CMAKE_CURRENT_SOURCE_DIR}/xc3sprog"
+       "${CMAKE_CURRENT_SOURCE_DIR}/xc2c_warp"
+       "${CMAKE_CURRENT_SOURCE_DIR}/readdna"
+       "${CMAKE_CURRENT_SOURCE_DIR}/bitparse"
+       "${CMAKE_CURRENT_SOURCE_DIR}/jedecparse"
+       "${CMAKE_CURRENT_SOURCE_DIR}/srecparse"
+       "${CMAKE_CURRENT_SOURCE_DIR}/detectchain"
+       )
 
 SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${GENERATED_FILES}") 

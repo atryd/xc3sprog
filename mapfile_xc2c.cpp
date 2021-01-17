@@ -22,6 +22,10 @@
 #endif
 #endif
 
+#ifndef MAPDIR
+#define MAPDIR "SYSTEM:"
+#endif
+
 MapFile_XC2C::MapFile_XC2C()
 {
   map = 0;

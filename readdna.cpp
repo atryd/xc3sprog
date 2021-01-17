@@ -32,9 +32,6 @@ Dmitry Teytelman [dimtey@gmail.com] 14 Jun 2006 [applied 13 Aug 2006]:
 #include <memory>
 #include "io_exception.h"
 #include "ioparport.h"
-#include "iofx2.h"
-#include "ioxpc.h"
-#include "ioftdi.h"
 #include "iodebug.h"
 #include "jtag.h"
 #include "devicedb.h"
