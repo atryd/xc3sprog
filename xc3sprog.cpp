@@ -25,8 +25,6 @@ Dmitry Teytelman [dimtey@gmail.com] 14 Jun 2006 [applied 13 Aug 2006]:
     Installable device database location.
 */
 
-#define AMIGA
-
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -40,7 +38,7 @@ Dmitry Teytelman [dimtey@gmail.com] 14 Jun 2006 [applied 13 Aug 2006]:
 #include <signal.h>
 #include <climits>
 
-
+#include "amiga.h"
 #include "io_exception.h"
 #include "ioparport.h"
 #include "iosolas.h"
@@ -688,6 +686,14 @@ int main(int argc, char **args)
             "Check Sourceforge for updates:\n"
             "\thttp://sourceforge.net/projects/xc3sprog/develop\n\n",
             osname);
+
+    // check we're not trying to flash a cpld thats keeping the active cpu running.
+    if (amiga_has_terriblefire_card())
+    {
+       fprintf(stderr,"REMOVE or DISABLE (via jumper) YOUR TF CARD BEFORE FLASHING IT. YOU WILL BRICK YOUR AMIGA.\n");
+       fprintf(stderr,"Stubbornly refusing to flash the CPLDS with the TF running.\n");
+       exit(EXIT_FAILURE);
+    }
 
     // Start from parsing command line arguments
     while(true) {
@@ -1922,3 +1928,4 @@ xmega_release:
 }
 
 #endif
+

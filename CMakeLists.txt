@@ -92,7 +92,7 @@ target_link_libraries(xc2c_warp xc3sproglib ${CONDITIONAL_LIBS})
 add_executable(detectchain detectchain.cpp cables.h devices.h)
 target_link_libraries(detectchain xc3sproglib ${CONDITIONAL_LIBS} ${LIBS} )
 
-add_executable(xc3sprog xc3sprog.cpp srecfile.cpp
+add_executable(xc3sprog xc3sprog.cpp srecfile.cpp amiga.cpp
 			devices.h)
 target_link_libraries(xc3sprog xc3sproglib ${CONDITIONAL_LIBS}  ${LIBS} )
 
