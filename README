@@ -2,6 +2,7 @@ Spartan3, XCF and CPLD JTAG programmer and other utilities
 
 Copyright (C) 2004 Andrew Rogers
           (C) 2005-2011 Uwe Bonnes bon@elektron.ikp.physik.tu-darmstadt.de
+          (C) 2021 Stephen Leary 
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -31,14 +32,14 @@ Thanks to
 This program should run without installation. For accessing USB cables, libusb0
 is required as runtime dynamic linked libray.
 
-To compile, you need CMAKE, the static libftdi library and usb.h. 
+To compile, you need :- 
+
+https://github.com/bebbo/amiga-gcc
+https://github.com/skeetor/amiga-utils
+
+To build then... 
 
 $ mkdir build; cd build; cmake ..; make
-
-To crosscompile for Win32 with mingw:
-
-$ mkdir build-win32; cd build-win32; 
-$ cmake -DCMAKE_TOOLCHAIN_FILE=../Toolchain-mingw32.cmake ..
 
 Get a description with 
 
